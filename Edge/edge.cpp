@@ -15,7 +15,7 @@ Mat loadImg(String str){
 void createWindow(){
 
 	namedWindow("MyWindow", CV_WINDOW_AUTOSIZE); //create a window with the name "MyWindow"
-	namedWindow("Settings", CV_WINDOW_AUTOSIZE); //create a window with the name "MyWindow"
+	//namedWindow("Settings", CV_WINDOW_AUTOSIZE); //create a window with the name "MyWindow"
 
 }
 
@@ -64,7 +64,7 @@ int main( int argc, const char** argv )
 {
 	
 	Mat img = loadImg("img.jpg");
-	//resize(img,img,Size(),2.0,2.0);
+	resize(img,img,Size(),2.0,2.0);
 
 	createWindow();
 
