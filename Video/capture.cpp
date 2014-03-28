@@ -5,25 +5,38 @@
 using namespace cv;
 using namespace std;
 
-Mat meanImage;
+Mat meanImage, stdDev;
 double convSpeed;
+double confAmp;
 
 int conv_speed = 10;
 int const max_speed = 100;
+int conf_amp = 5;
+int const max_amp = 10;
 /**  @function Erosion  */
 void changeSpeed( int, void* )
 {
 	convSpeed = 1.0 - ((double)conv_speed)/100.0;
 }
 
+void changeAmp( int, void* )
+{
+	confAmp = (double)conf_amp;
+}
+
 void initConfig(){
 	/// Create Erosion Trackbar
 	
 	convSpeed = 0.9;
+	confAmp = 5.0;
 
 	createTrackbar( "Speed:\n", "Settings",
 				&conv_speed, max_speed,
 				changeSpeed );
+				
+	createTrackbar( "Amplitude:\n", "Settings",
+				&conf_amp, max_amp,
+				changeAmp );
 }
 
 Mat processImage(Mat image)
@@ -35,28 +48,35 @@ Mat processImage(Mat image)
 	    for (int j = 0; j < image.rows; j++) {
 	        Vec3b &intensity = image.at<Vec3b>(j, i);
 	        Vec3b &intensityMean = meanImage.at<Vec3b>(j, i);
+	        Vec3b &intensityDev = stdDev.at<Vec3b>(j, i);
 	        
 	        for(int k = 0; k < image.channels(); k++) {
 	            // calculate pixValue
 	            intensityMean.val[k] = intensityMean.val[k]*convSpeed + (1-convSpeed)*intensity.val[k];
 	            double diff = intensity.val[k] - intensityMean.val[k];
-	            diff *= 5.0;
+	            intensityDev.val[k] = intensityDev.val[k]*convSpeed + (1-convSpeed)*abs(diff);
+	            
+	            diff *= confAmp;
+	            
+	            double thresh = 50.0;
+	            if(abs(diff) > thresh) diff = 0;
 	           
-	           	//if(intensity.val[k] + diff < 0 || intensity.val[k] + diff > 255) break;
+	           	if(intensity.val[k] + diff < 0 || intensity.val[k] + diff > 255) break;
 	            /*
 	            if(diff > 0)
 	            	intensity.val[k] = diff;
 	            else
 	            	intensity.val[k] = -diff;*/
 	           	
+	           	
 	            intensity.val[k] += diff;	
 	            	
-	            if(k < 2) intensity.val[k] -= diff;
+	            //if(k < 2) intensity.val[k] -= diff;
 	        }
 	     }
 	}
 	
-	//imshow("Mean", meanImage);
+	imshow("Mean", stdDev);
 	
 	
 	return image;
@@ -66,8 +86,9 @@ int main(int argc, char* argv[])
 {
     Mat frame,result;
     
+    namedWindow("Mean",CV_WINDOW_AUTOSIZE);
     namedWindow("MyVideo",CV_WINDOW_AUTOSIZE); //create a window called "MyVideo"
-   // namedWindow("Mean",CV_WINDOW_AUTOSIZE);
+    
     namedWindow("Settings",CV_WINDOW_AUTOSIZE); //create a window called "MyVideo"
     
     initConfig();
@@ -88,6 +109,7 @@ int main(int argc, char* argv[])
 	
    	bool bSuccess = cap.read(frame); // read a new frame from video
    	frame.copyTo(meanImage);
+   	frame.copyTo(stdDev);
 
     while (1)
     {
