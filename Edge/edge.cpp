@@ -35,6 +35,7 @@ Mat edgeSobel(Mat src){
 	GaussianBlur( src, blur, Size(3,3), 0, 0, BORDER_DEFAULT );
 
 	/// Convert it to gray
+
 	cvtColor( blur, src_gray, CV_RGB2GRAY );
 
 	/// Generate grad_x and grad_y
@@ -77,8 +78,8 @@ int main( int argc, const char** argv )
 		Mat tmp2;
 		cvtColor(tmp,tmp2,CV_GRAY2RGB);
 
-		Mat out;
-		addWeighted( tmp2, 0.5, img, 0.5, 0, out );
+		Mat out = img*0.5 + tmp2*2.0;
+		//addWeighted( tmp2*5.0, 0.5, img, 0.5, 0, out );
 		//add(tmp2,img, out);
 
 		showImage(out);
